@@ -9,26 +9,28 @@
 ### textStyle (for text blocks)
 **Source:** API validation error message + response examples
 
-| Valid Value | Description | Node Default |
-|-------------|-------------|--------------|
-| *(empty)* | Don't change (partial update) | ✅ Default |
-| `body` | Default text style | |
+**⚠️ REQUIRED FIELD - Cannot be omitted!**
+
+| Valid Value | Description | Usage |
+|-------------|-------------|-------|
+| `body` | Default text style | ✅ Use for all non-header text |
 | `card` | Card-styled block | |
 | `page` | Page title style | |
-| `h1` | Heading level 1 | |
-| `h2` | Heading level 2 | |
-| `h3` | Heading level 3 | |
-| `h4` | Heading level 4 (deepest) | |
+| `h1` | Heading level 1 | `# Heading` |
+| `h2` | Heading level 2 | `## Heading` |
+| `h3` | Heading level 3 | `### Heading` |
+| `h4` | Heading level 4 (deepest) | `####` and deeper |
 | `caption` | Caption text | |
 
 **⚠️ INVALID VALUES:**
 - `code` - NOT valid! API auto-detects code blocks from ``` markdown syntax
 - `title` - NOT valid! Use `page` or `h1` instead
 - `subtitle` - NOT valid! Use `caption` or `body` instead
+- `undefined` / omitted - NOT valid! Must always provide textStyle
 
-**Code blocks:** Send as `type: 'text'` with markdown containing ``` syntax. API will return `type: 'code'` with `language` and `rawCode` properties.
+**Code blocks:** Send as `type: 'text'` with `textStyle: 'body'` and markdown containing ``` syntax. API will auto-detect and handle as code.
 
-**Partial Updates:** When updating blocks, use empty string (Don't Change) to keep current style. Only non-empty values are sent to API.
+**Block Update:** For partial updates, use empty string "" in n8n UI for "Don't Change" option.
 
 ---
 
