@@ -5,15 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.18] - 2025-11-29
-
-### Fixed
-
-- **Critical**: Use `JSON.stringify` to bypass n8n body processing
-  - Ensures exact JSON serialization without any n8n magic
-  - Explicitly sets `Content-Type: application/json` header
-  - Should fix code block parsing issues
-
 ## [1.0.17] - 2025-11-29
 
 ### Changed

@@ -12,6 +12,11 @@ import type {
 	IDataObject,
 } from 'n8n-workflow';
 
+// Declare console for Node.js environment
+declare const console: {
+	log: (...args: unknown[]) => void;
+};
+
 const showOnlyForBlockInsert = { operation: ['insert'], resource: ['block'] };
 
 /**
@@ -57,27 +62,46 @@ export async function blockInsertPreSend(
 	this: IExecuteSingleFunctions,
 	requestOptions: IHttpRequestOptions,
 ): Promise<IHttpRequestOptions> {
+	console.log('=== CRAFT INSERT DEBUG START ===');
+	console.log('requestOptions BEFORE:', JSON.stringify(requestOptions, null, 2));
+	
 	// Build position object
 	const position = buildPositionObject(this);
+	console.log('Position object:', JSON.stringify(position));
 
 	// Get markdown content - ULTRA DEFENSIVE
 	let markdownContent = '';
 	try {
 		const rawValue = this.getNodeParameter('markdownContent', '');
+		console.log('Raw markdownContent type:', typeof rawValue);
+		console.log('Raw markdownContent value (first 200 chars):', String(rawValue).substring(0, 200));
+		console.log('Raw markdownContent is array?:', Array.isArray(rawValue));
+		
 		// Force to string, handle any type
 		if (rawValue === null || rawValue === undefined) {
+			console.log('markdownContent is null/undefined');
 			markdownContent = '';
 		} else if (typeof rawValue === 'string') {
+			console.log('markdownContent is string');
 			markdownContent = rawValue;
+		} else if (Array.isArray(rawValue)) {
+			console.log('WARNING: markdownContent is ARRAY!', rawValue);
+			markdownContent = rawValue.join('\n');
 		} else if (typeof rawValue === 'object') {
-			// If somehow it's an object, stringify it
+			console.log('WARNING: markdownContent is OBJECT!', rawValue);
 			markdownContent = JSON.stringify(rawValue);
 		} else {
+			console.log('markdownContent is other type:', typeof rawValue);
 			markdownContent = String(rawValue);
 		}
-	} catch {
+	} catch (error) {
+		console.log('ERROR getting markdownContent:', error);
 		markdownContent = '';
 	}
+
+	console.log('Final markdownContent length:', markdownContent.length);
+	console.log('Final markdownContent (first 500 chars):', markdownContent.substring(0, 500));
+	console.log('Contains triple backticks?:', markdownContent.includes('```'));
 
 	// Create the body as a plain object
 	const bodyObject = {
@@ -94,15 +118,31 @@ export async function blockInsertPreSend(
 		},
 	};
 
+	console.log('bodyObject.blocks.length:', bodyObject.blocks.length);
+	console.log('bodyObject.blocks[0].type:', bodyObject.blocks[0].type);
+	console.log('bodyObject.blocks[0].markdown length:', bodyObject.blocks[0].markdown.length);
+
 	// Use JSON.stringify to ensure proper serialization
-	// This bypasses any n8n body processing that might cause issues
-	requestOptions.body = JSON.stringify(bodyObject);
+	const jsonBody = JSON.stringify(bodyObject);
+	console.log('JSON body length:', jsonBody.length);
+	console.log('JSON body (first 500 chars):', jsonBody.substring(0, 500));
 	
-	// Ensure Content-Type is set (might be overwritten by n8n)
+	requestOptions.body = jsonBody;
+	
+	// Ensure Content-Type is set
 	requestOptions.headers = {
 		...requestOptions.headers,
 		'Content-Type': 'application/json',
 	};
+
+	console.log('requestOptions AFTER:', JSON.stringify({
+		method: requestOptions.method,
+		url: requestOptions.url,
+		headers: requestOptions.headers,
+		bodyLength: typeof requestOptions.body === 'string' ? requestOptions.body.length : 'not-string',
+		bodyType: typeof requestOptions.body,
+	}));
+	console.log('=== CRAFT INSERT DEBUG END ===');
 
 	return requestOptions;
 }
