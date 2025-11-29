@@ -5,7 +5,7 @@
 import type { INodeProperties } from 'n8n-workflow';
 
 import { blockGetDescription } from './get';
-import { blockInsertDescription } from './insert';
+import { blockInsertDescription, blockInsertPreSend } from './insert';
 import { blockUpdateDescription } from './update';
 import { blockDeleteDescription } from './delete';
 import { blockMoveDescription } from './move';
@@ -51,7 +51,15 @@ export const blockDescription: INodeProperties[] = [
 				value: 'insert',
 				action: 'Insert blocks into a daily note',
 				description: 'Insert content into a daily note',
-				// No routing - handled programmatically for smart block building
+				routing: {
+					request: {
+						method: 'POST',
+						url: '/blocks',
+					},
+					send: {
+						preSend: [blockInsertPreSend],
+					},
+				},
 			},
 			{
 				name: 'Move',

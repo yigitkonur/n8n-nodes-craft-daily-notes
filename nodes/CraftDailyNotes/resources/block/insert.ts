@@ -1,9 +1,72 @@
 /**
  * BLOCK INSERT OPERATION
  * POST /blocks - Insert content into a daily note
- * Uses programmatic execute for smart block building
+ * Uses preSend hook for smart block building within declarative routing
  */
-import type { INodeProperties } from 'n8n-workflow';
+import type {
+	INodeProperties,
+	IExecuteSingleFunctions,
+	IHttpRequestOptions,
+	IDataObject,
+} from 'n8n-workflow';
+
+import { buildBlocksFromMarkdown, parseBlockArray } from '../../shared/blockBuilder';
+
+/**
+ * PreSend hook for block insert operation
+ * Transforms markdown content or JSON blocks into the API request body
+ */
+export async function blockInsertPreSend(
+	this: IExecuteSingleFunctions,
+	requestOptions: IHttpRequestOptions,
+): Promise<IHttpRequestOptions> {
+	const contentMode = this.getNodeParameter('contentMode') as string;
+
+	let blocks: IDataObject[];
+
+	if (contentMode === 'markdown') {
+		// Smart block building from markdown
+		const markdownContent = this.getNodeParameter('markdownContent') as string;
+		const processingOptions = this.getNodeParameter('blockProcessingOptions', {}) as IDataObject;
+
+		const builtBlocks = buildBlocksFromMarkdown(markdownContent, {
+			maxBlockSize: (processingOptions.maxBlockSize as number) || 5000,
+			preserveHeaders: processingOptions.preserveHeaders !== false,
+			splitOnParagraphs: processingOptions.splitOnParagraphs !== false,
+		});
+
+		blocks = builtBlocks as unknown as IDataObject[];
+	} else {
+		// Parse JSON block array
+		const blocksJson = this.getNodeParameter('blocksJson') as string;
+		blocks = parseBlockArray(blocksJson) as unknown as IDataObject[];
+	}
+
+	// Build position object
+	const positionParam = this.getNodeParameter('position', {}) as IDataObject;
+	const positionValues = (positionParam.positionValues as IDataObject) || {};
+
+	const position: IDataObject = {
+		position: (positionValues.position as string) || 'end',
+		date: (positionValues.date as string) || 'today',
+	};
+
+	// Add referenceBlockId if using before/after
+	if (
+		['before', 'after'].includes(position.position as string) &&
+		positionValues.referenceBlockId
+	) {
+		position.referenceBlockId = positionValues.referenceBlockId;
+	}
+
+	// Set the request body
+	requestOptions.body = {
+		blocks,
+		position,
+	};
+
+	return requestOptions;
+}
 
 const showOnlyForBlockInsert = { operation: ['insert'], resource: ['block'] };
 

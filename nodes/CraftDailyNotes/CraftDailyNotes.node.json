@@ -6,12 +6,12 @@
 	"resources": {
 		"credentialDocumentation": [
 			{
-				"url": "https://www.craft.do/s/hLrMZpKFfYRWPT"
+				"url": "https://github.com/yigitkonur/n8n-nodes-craft-daily-notes#setup"
 			}
 		],
 		"primaryDocumentation": [
 			{
-				"url": "https://www.craft.do/s/hLrMZpKFfYRWPT"
+				"url": "https://github.com/yigitkonur/n8n-nodes-craft-daily-notes"
 			}
 		]
 	},
