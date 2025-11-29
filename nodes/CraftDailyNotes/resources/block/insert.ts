@@ -52,8 +52,8 @@ export async function blockInsertPreSend(
 	this: IExecuteSingleFunctions,
 	requestOptions: IHttpRequestOptions,
 ): Promise<IHttpRequestOptions> {
-	// === DEBUG MODE - SET TO true TO SEE WHAT'S BEING SENT ===
-	const DEBUG_MODE = true;
+	// === DEBUG MODE - SET TO false FOR PRODUCTION ===
+	const DEBUG_MODE = false;
 	
 	const debugInfo: string[] = [];
 	debugInfo.push('=== CRAFT INSERT v1.0.20 DEBUG ===');
@@ -125,10 +125,16 @@ export async function blockInsertPreSend(
 		throw new Error('DEBUG INFO (this is intentional):\n\n' + debugInfo.join('\n'));
 	}
 	
-	requestOptions.body = jsonBody;
+	// IMPORTANT: Clear existing body and set our own as OBJECT (not string)
+	// n8n will handle JSON serialization
+	// Using 'as IDataObject' to satisfy type requirements
+	requestOptions.body = bodyObject as unknown as IDataObject;
+	
+	// Explicitly set headers
 	requestOptions.headers = {
 		...requestOptions.headers,
 		'Content-Type': 'application/json',
+		'Accept': 'application/json',
 	};
 
 	return requestOptions;
