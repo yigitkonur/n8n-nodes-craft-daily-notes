@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2025-11-29
+
+### Fixed
+
+- **Critical**: Block insert now works with code blocks (triple backticks)
+- Root cause: `textStyle: 'code'` was being sent but is NOT a valid API value
+- Valid textStyle values are: `card`, `page`, `h1`, `h2`, `h3`, `h4`, `caption`, `body`
+- The API auto-detects code blocks from the ``` markdown syntax
+- Updated `blockBuilder.ts` to not set textStyle for code blocks
+
 ## [1.0.4] - 2025-11-29
 
 ### Fixed

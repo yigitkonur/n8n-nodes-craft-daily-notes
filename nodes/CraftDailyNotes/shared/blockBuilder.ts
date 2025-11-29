@@ -7,7 +7,9 @@
 export interface BlockStructure {
 	type: 'text';
 	markdown: string;
-	textStyle?: 'body' | 'title' | 'subtitle' | 'h1' | 'h2' | 'h3' | 'code' | 'page';
+	// Valid textStyle values per API: card, page, h1, h2, h3, h4, caption, body
+	// Note: 'code' is NOT a valid textStyle - API auto-detects code blocks from ``` syntax
+	textStyle?: 'body' | 'card' | 'page' | 'h1' | 'h2' | 'h3' | 'h4' | 'caption';
 	listStyle?: 'none' | 'bullet' | 'numbered' | 'todo' | 'toggle';
 }
 
@@ -31,7 +33,8 @@ function detectTextStyle(line: string): BlockStructure['textStyle'] {
 	if (line.startsWith('## ')) return 'h2';
 	if (line.startsWith('### ')) return 'h3';
 	if (line.startsWith('#### ') || line.startsWith('##### ') || line.startsWith('###### ')) return 'h3';
-	if (line.startsWith('```')) return 'code';
+	// Note: Code blocks (```) are auto-detected by API from markdown syntax
+	// Valid textStyle values: card, page, h1, h2, h3, h4, caption, body
 	return 'body';
 }
 
@@ -116,12 +119,12 @@ export function buildBlocksFromMarkdown(
 			continue;
 		}
 
-		// Check if this is a code block
+		// Check if this is a code block - don't set textStyle, API auto-detects from ``` syntax
+		// The API will return type: 'code' with language and rawCode properties
 		if (trimmed.startsWith('```')) {
 			blocks.push({
 				type: 'text',
 				markdown: trimmed,
-				textStyle: 'code',
 			});
 			continue;
 		}
