@@ -1,0 +1,22 @@
+{
+	"node": "n8n-nodes-craft-daily-notes.craftDailyNotes",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Productivity"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://github.com/yigitkonur/n8n-nodes-craft-daily-notes#setup"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/yigitkonur/n8n-nodes-craft-daily-notes"
+			}
+		]
+	},
+	"alias": ["craft", "daily notes", "notion", "notes", "tasks", "productivity"],
+	"subcategories": {
+		"Productivity": ["Note Taking"]
+	}
+}
