@@ -107,15 +107,17 @@ rm -rf CLAUDE.md .clinerules .roomodes .rules .aider.conf.yml .continue .github/
 **Config Files:**
 ```
 .windsurf/rules/
-└── n8n-boilerplate.md         # Main rules (379 lines)
+├── n8n-node-development.md    # Main rules (180 lines)
+├── credentials.md             # Credential-specific rules
+└── documentation.md           # Doc navigation helper
 ```
 
-**Why this file:** Windsurf uses YAML frontmatter with `trigger: always_on` to keep rules active across all files. We created a comprehensive step-by-step workflow guide that walks through the entire node development process from API research to publishing.
+**Why these files:** Windsurf supports glob-triggered rules that auto-apply based on file patterns. We created three focused rule files — one for node development, one for credentials, and one for documentation navigation — each activating only when relevant files are open.
 
 **Customizations:**
-- `trigger: always_on` — Rules always visible in Cascade
-- Decision tree for architecture selection
-- 8-step workflow from research to registration
+- `trigger: glob` with `globs: ["nodes/**/*.ts"]` — Auto-applies to n8n source files
+- Separate credential rules for `credentials/**/*.ts`
+- Doc navigation for `docs/**/*.md`
 
 **If using Windsurf, remove others:**
 ```bash
@@ -350,8 +352,10 @@ rm -rf CLAUDE.md .cursor .windsurf .clinerules .roomodes .rules .aider.conf.yml 
 │   ├── n8n-node-development.mdc
 │   ├── credentials.mdc
 │   └── documentation.mdc
-├── .windsurf/rules/            # Windsurf (always_on trigger)
-│   └── n8n-boilerplate.md
+├── .windsurf/rules/            # Windsurf (glob triggers)
+│   ├── n8n-node-development.md
+│   ├── credentials.md
+│   └── documentation.md
 ├── .continue/rules/            # Continue.dev (@ file refs)
 │   └── n8n-rules.md
 ├── .github/                    # GitHub Copilot
