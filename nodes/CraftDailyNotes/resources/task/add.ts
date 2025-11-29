@@ -37,7 +37,7 @@ export const taskAddDescription: INodeProperties[] = [
 						type: 'string',
 						default: 'today',
 						placeholder: 'today, tomorrow, or YYYY-MM-DD',
-						description: 'Which daily note to add the task to',
+						description: 'Which daily note to add the task to (only used when Location Type is Daily Note)',
 					},
 					{
 						displayName: 'Location Type',
@@ -45,14 +45,14 @@ export const taskAddDescription: INodeProperties[] = [
 						type: 'options',
 						options: [
 							{
-								name: 'Daily Note',
-								value: 'dailyNote',
-								description: 'Add task to a specific daily note',
-							},
-							{
 								name: 'Inbox',
 								value: 'inbox',
 								description: 'Add task to inbox',
+							},
+							{
+								name: 'Daily Note',
+								value: 'dailyNote',
+								description: 'Add task to a specific daily note',
 							},
 						],
 						default: 'inbox',
@@ -71,11 +71,11 @@ export const taskAddDescription: INodeProperties[] = [
 						name: 'markdown',
 						type: 'string',
 						default: '',
-						required: true,
+							required:	true,
 						placeholder: 'Buy groceries',
 						description: 'The task content in markdown format',
 					},
-				],
+			],
 			},
 		],
 		routing: {
