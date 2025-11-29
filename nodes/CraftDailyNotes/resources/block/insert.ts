@@ -12,11 +12,6 @@ import type {
 	IDataObject,
 } from 'n8n-workflow';
 
-// Declare console for Node.js environment
-declare const console: {
-	log: (...args: unknown[]) => void;
-};
-
 const showOnlyForBlockInsert = { operation: ['insert'], resource: ['block'] };
 
 /**
@@ -51,59 +46,61 @@ function buildPositionObject(context: IExecuteSingleFunctions): IDataObject {
 /**
  * PreSend hook for block insert operation
  * 
- * SIMPLE: Just send markdown as a single text block.
- * Craft API automatically parses and splits into proper blocks:
- * - Headers become h1/h2/h3/h4 blocks
- * - Code fences become code blocks with language detection
- * - Paragraphs become text blocks
- * - Lists are properly formatted
+ * DEBUG MODE: Set debugMode = true to see exactly what's being sent
  */
 export async function blockInsertPreSend(
 	this: IExecuteSingleFunctions,
 	requestOptions: IHttpRequestOptions,
 ): Promise<IHttpRequestOptions> {
-	console.log('=== CRAFT INSERT DEBUG START ===');
-	console.log('requestOptions BEFORE:', JSON.stringify(requestOptions, null, 2));
+	// === DEBUG MODE - SET TO true TO SEE WHAT'S BEING SENT ===
+	const DEBUG_MODE = true;
+	
+	const debugInfo: string[] = [];
+	debugInfo.push('=== CRAFT INSERT v1.0.20 DEBUG ===');
+	debugInfo.push(`requestOptions.body BEFORE: ${JSON.stringify(requestOptions.body)}`);
+	debugInfo.push(`requestOptions.method: ${requestOptions.method}`);
+	debugInfo.push(`requestOptions.url: ${requestOptions.url}`);
 	
 	// Build position object
 	const position = buildPositionObject(this);
-	console.log('Position object:', JSON.stringify(position));
+	debugInfo.push(`Position: ${JSON.stringify(position)}`);
 
-	// Get markdown content - ULTRA DEFENSIVE
+	// Get markdown content
 	let markdownContent = '';
+	let rawValueType = 'unknown';
 	try {
 		const rawValue = this.getNodeParameter('markdownContent', '');
-		console.log('Raw markdownContent type:', typeof rawValue);
-		console.log('Raw markdownContent value (first 200 chars):', String(rawValue).substring(0, 200));
-		console.log('Raw markdownContent is array?:', Array.isArray(rawValue));
+		rawValueType = typeof rawValue;
+		debugInfo.push(`markdownContent type: ${rawValueType}`);
+		debugInfo.push(`markdownContent isArray: ${Array.isArray(rawValue)}`);
 		
-		// Force to string, handle any type
 		if (rawValue === null || rawValue === undefined) {
-			console.log('markdownContent is null/undefined');
 			markdownContent = '';
+			debugInfo.push('markdownContent: NULL/UNDEFINED');
 		} else if (typeof rawValue === 'string') {
-			console.log('markdownContent is string');
 			markdownContent = rawValue;
+			debugInfo.push(`markdownContent length: ${rawValue.length}`);
+			debugInfo.push(`markdownContent first 300 chars: ${rawValue.substring(0, 300)}`);
 		} else if (Array.isArray(rawValue)) {
-			console.log('WARNING: markdownContent is ARRAY!', rawValue);
+			debugInfo.push(`WARNING: ARRAY with ${rawValue.length} items`);
+			debugInfo.push(`Array contents: ${JSON.stringify(rawValue).substring(0, 500)}`);
 			markdownContent = rawValue.join('\n');
 		} else if (typeof rawValue === 'object') {
-			console.log('WARNING: markdownContent is OBJECT!', rawValue);
+			debugInfo.push(`WARNING: OBJECT`);
+			debugInfo.push(`Object contents: ${JSON.stringify(rawValue).substring(0, 500)}`);
 			markdownContent = JSON.stringify(rawValue);
 		} else {
-			console.log('markdownContent is other type:', typeof rawValue);
 			markdownContent = String(rawValue);
 		}
 	} catch (error) {
-		console.log('ERROR getting markdownContent:', error);
+		debugInfo.push(`ERROR: ${error}`);
 		markdownContent = '';
 	}
 
-	console.log('Final markdownContent length:', markdownContent.length);
-	console.log('Final markdownContent (first 500 chars):', markdownContent.substring(0, 500));
-	console.log('Contains triple backticks?:', markdownContent.includes('```'));
+	debugInfo.push(`Has triple backticks: ${markdownContent.includes('```')}`);
+	debugInfo.push(`Final content length: ${markdownContent.length}`);
 
-	// Create the body as a plain object
+	// Create the body
 	const bodyObject = {
 		blocks: [
 			{
@@ -118,31 +115,21 @@ export async function blockInsertPreSend(
 		},
 	};
 
-	console.log('bodyObject.blocks.length:', bodyObject.blocks.length);
-	console.log('bodyObject.blocks[0].type:', bodyObject.blocks[0].type);
-	console.log('bodyObject.blocks[0].markdown length:', bodyObject.blocks[0].markdown.length);
-
-	// Use JSON.stringify to ensure proper serialization
 	const jsonBody = JSON.stringify(bodyObject);
-	console.log('JSON body length:', jsonBody.length);
-	console.log('JSON body (first 500 chars):', jsonBody.substring(0, 500));
+	debugInfo.push(`JSON body blocks count: ${bodyObject.blocks.length}`);
+	debugInfo.push(`JSON body length: ${jsonBody.length}`);
+	debugInfo.push(`JSON body first 800 chars: ${jsonBody.substring(0, 800)}`);
+	
+	// If DEBUG_MODE, throw error with all debug info so user can see it in UI
+	if (DEBUG_MODE) {
+		throw new Error('DEBUG INFO (this is intentional):\n\n' + debugInfo.join('\n'));
+	}
 	
 	requestOptions.body = jsonBody;
-	
-	// Ensure Content-Type is set
 	requestOptions.headers = {
 		...requestOptions.headers,
 		'Content-Type': 'application/json',
 	};
-
-	console.log('requestOptions AFTER:', JSON.stringify({
-		method: requestOptions.method,
-		url: requestOptions.url,
-		headers: requestOptions.headers,
-		bodyLength: typeof requestOptions.body === 'string' ? requestOptions.body.length : 'not-string',
-		bodyType: typeof requestOptions.body,
-	}));
-	console.log('=== CRAFT INSERT DEBUG END ===');
 
 	return requestOptions;
 }
