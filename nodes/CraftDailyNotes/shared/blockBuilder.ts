@@ -26,10 +26,11 @@ const DEFAULT_OPTIONS: BlockBuilderOptions = {
 };
 
 /**
- * FAIL-SAFE: Create a single plain text block (no textStyle = API uses defaults)
+ * Create a text block with explicit 'body' textStyle
+ * API REQUIRES textStyle - cannot be omitted!
  */
-function createPlainTextBlock(markdown: string): BlockStructure {
-	return { type: 'text', markdown: markdown.trim() };
+function createBodyTextBlock(markdown: string): BlockStructure {
+	return { type: 'text', markdown: markdown.trim(), textStyle: 'body' };
 }
 
 /**
@@ -130,9 +131,9 @@ export function buildBlocksFromMarkdown(
 
 		for (const segment of segments) {
 			try {
-				// Code blocks: NO textStyle (API auto-detects from ``` syntax)
+				// Code blocks: send with textStyle: 'body', API auto-detects code from ``` syntax
 				if (segment.type === 'code') {
-					blocks.push(createPlainTextBlock(segment.content));
+					blocks.push(createBodyTextBlock(segment.content));
 					continue;
 				}
 
@@ -156,17 +157,17 @@ export function buildBlocksFromMarkdown(
 							if (style) {
 								blocks.push({ type: 'text', markdown: lineTrimmed, textStyle: style });
 							} else {
-								blocks.push(createPlainTextBlock(lineTrimmed));
+								blocks.push(createBodyTextBlock(lineTrimmed));
 							}
 						}
 					} else {
-						// Plain text - no textStyle, API uses defaults
-						blocks.push(createPlainTextBlock(trimmed));
+						// Plain text with textStyle: 'body'
+						blocks.push(createBodyTextBlock(trimmed));
 					}
 				}
 			} catch {
 				// FAIL-SAFE: If segment processing fails, add as plain text
-				blocks.push(createPlainTextBlock(segment.content));
+				blocks.push(createBodyTextBlock(segment.content));
 			}
 		}
 
@@ -176,11 +177,11 @@ export function buildBlocksFromMarkdown(
 		}
 
 		// FAIL-SAFE: No blocks created? Send whole thing as one block
-		return [createPlainTextBlock(markdown)];
+		return [createBodyTextBlock(markdown)];
 
 	} catch {
 		// ULTIMATE FAIL-SAFE: Any error = send whole markdown as single plain text block
-		return [createPlainTextBlock(markdown)];
+		return [createBodyTextBlock(markdown)];
 	}
 }
 
