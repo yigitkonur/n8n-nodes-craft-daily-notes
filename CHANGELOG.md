@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2025-11-29
+
+### Changed
+
+- **Codebase Cleanup**: Removed unused code and streamlined transport layer
+  - Removed unused `craftApiRequestWithAccept` function (52 lines)
+  - Simplified `craftApiRequest` to only what's needed for loadOptions
+  - Removed `.DS_Store` and other OS artifacts
+  - Removed `AGENTS.md` from git tracking (still in .gitignore)
+  - Total source: 2041 lines across 25 files
+
 ## [1.0.7] - 2025-11-29
 
 ### Fixed
