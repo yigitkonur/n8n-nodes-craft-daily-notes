@@ -41,20 +41,44 @@ function createBodyTextBlock(markdown: string): TextBlockStructure {
 /**
  * Create a code block with rawCode property
  * Extracts language hint from opening ``` if present
+ * DEFENSIVE: Always ensures rawCode is a non-empty string
  */
 function createCodeBlock(codeContent: string): CodeBlockStructure {
-	// Extract content between ``` markers
-	const match = codeContent.match(/^```(\w*)\n?([\s\S]*?)\n?```$/);
-	if (match) {
+	// Normalize line endings and trim
+	const normalized = (codeContent || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+	
+	// If empty or just backticks, return empty code block
+	if (!normalized || normalized === '``````' || normalized === '```\n```') {
+		return { type: 'code', rawCode: '' };
+	}
+	
+	// Try regex extraction first (handles language hints)
+	// Match: ```[language]\n[content]\n```
+	const match = normalized.match(/^```(\w*)\n?([\s\S]*?)\n?```$/);
+	if (match && match[2] !== undefined) {
+		const rawCode = match[2].trim();
+		const language = match[1] || undefined;
 		return {
 			type: 'code',
-			rawCode: match[2].trim(),
-			...(match[1] ? { language: match[1] } : {}),
+			rawCode: rawCode,
+			...(language ? { language } : {}),
 		};
 	}
-	// Fallback: remove ``` markers manually
-	const cleaned = codeContent.replace(/^```\w*\n?/, '').replace(/\n?```$/, '');
-	return { type: 'code', rawCode: cleaned.trim() };
+	
+	// Fallback: aggressively remove ``` markers
+	let cleaned = normalized;
+	
+	// Remove opening ``` with optional language
+	cleaned = cleaned.replace(/^```\w*[\r\n]*/, '');
+	// Remove closing ```
+	cleaned = cleaned.replace(/[\r\n]*```$/, '');
+	// Remove any remaining ``` at start/end
+	cleaned = cleaned.replace(/^`+/, '').replace(/`+$/, '');
+	
+	// Final safety: ensure rawCode is never undefined
+	const rawCode = cleaned.trim() || '';
+	
+	return { type: 'code', rawCode };
 }
 
 /**
@@ -195,9 +219,14 @@ export function buildBlocksFromMarkdown(
 			}
 		}
 
-		// If we got blocks, return them
-		if (blocks.length > 0) {
-			return blocks;
+		// STEP 3: Validate and sanitize all blocks before returning
+		const validBlocks = blocks
+			.map((block) => sanitizeBlock(block))
+			.filter((block): block is BlockStructure => block !== null);
+
+		// If we got valid blocks, return them
+		if (validBlocks.length > 0) {
+			return validBlocks;
 		}
 
 		// FAIL-SAFE: No blocks created? Send whole thing as one block
@@ -207,6 +236,48 @@ export function buildBlocksFromMarkdown(
 		// ULTIMATE FAIL-SAFE: Any error = send whole markdown as single plain text block
 		return [createBodyTextBlock(markdown)];
 	}
+}
+
+/**
+ * Sanitize a block to ensure it meets API requirements
+ * Returns null if block is invalid and should be filtered out
+ */
+function sanitizeBlock(block: BlockStructure): BlockStructure | null {
+	if (!block || typeof block !== 'object') {
+		return null;
+	}
+
+	// Handle code blocks
+	if (block.type === 'code') {
+		// Ensure rawCode exists and is a string
+		if (typeof block.rawCode !== 'string') {
+			return null; // Invalid code block - filter out
+		}
+		return {
+			type: 'code',
+			rawCode: block.rawCode,
+			...(block.language ? { language: block.language } : {}),
+		};
+	}
+
+	// Handle text blocks
+	if (block.type === 'text') {
+		// Ensure markdown exists and is a string
+		if (typeof block.markdown !== 'string') {
+			return null; // Invalid text block - filter out
+		}
+		// Ensure textStyle is valid
+		const validStyles = ['body', 'card', 'page', 'h1', 'h2', 'h3', 'h4', 'caption'];
+		const textStyle = validStyles.includes(block.textStyle) ? block.textStyle : 'body';
+		return {
+			type: 'text',
+			markdown: block.markdown,
+			textStyle,
+		};
+	}
+
+	// Unknown block type - filter out
+	return null;
 }
 
 /**

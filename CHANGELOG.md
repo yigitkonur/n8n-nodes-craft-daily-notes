@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.16] - 2025-11-29
+
+### Fixed
+
+- **Critical**: Fixed `rawCode: undefined` error when inserting code blocks
+  - Added defensive line ending normalization (CRLF → LF)
+  - Added `sanitizeBlock()` validation pass to ensure all blocks are valid
+  - Code blocks now guaranteed to have `rawCode` as string (never undefined)
+  - Text blocks now guaranteed to have valid `textStyle` from API allowed values
+  - Empty/invalid blocks are filtered out before API request
+
+### Changed
+
+- `createCodeBlock()` function now more robust with multiple fallback strategies
+- Added explicit block validation before returning from `buildBlocksFromMarkdown()`
+
 ## [1.0.15] - 2025-11-29
 
 ### Fixed
