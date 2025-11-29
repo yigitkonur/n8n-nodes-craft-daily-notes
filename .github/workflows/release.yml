@@ -1,6 +1,12 @@
 name: Release & Publish to npm
 
 on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '*.md'
+      - '.gitignore'
   workflow_dispatch:
     inputs:
       version_type:
@@ -16,6 +22,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Skip if commit message contains [skip ci] or is a release commit
+    if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'chore(release)')"
     permissions:
       contents: write
     steps:
@@ -34,7 +42,7 @@ jobs:
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "9989650+yigitkonur@users.noreply.github.com"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Install dependencies
         run: npm ci
@@ -45,10 +53,20 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Determine version bump type
+        id: bump_type
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "type=${{ inputs.version_type }}" >> $GITHUB_OUTPUT
+          else
+            # Default to patch for automatic releases
+            echo "type=patch" >> $GITHUB_OUTPUT
+          fi
+
       - name: Bump version
         id: version
         run: |
-          npm version ${{ inputs.version_type }} -m "chore(release): %s"
+          npm version ${{ steps.bump_type.outputs.type }} -m "chore(release): %s [skip ci]"
           echo "new_version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - name: Push changes and tags
