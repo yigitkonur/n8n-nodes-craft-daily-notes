@@ -5,6 +5,97 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-12-30
+
+### 🎉 Highlights
+
+**Major release with 40+ improvements, 100% API coverage, and 500+ ready-to-use workflows!**
+
+- 🔔 **New Trigger Node** — Poll for document & collection changes automatically
+- 📋 **Document Dropdowns** — Select documents visually instead of copying IDs
+- 🧱 **Structured Block Insert** — Full control over block types (text, code, image, divider)
+- 🔍 **Regex Search** — RE2-compatible pattern matching across all documents
+- 📊 **Schema-Aware Collections** — Dynamic property fields based on collection schema
+- 📦 **500+ Workflows** — [Production-ready workflows](https://github.com/yigitkonur/craft-n8n-workflows) ported from ClickUp, Airtable, Monday.com, Grist, NocoDB & Baserow
+
+### ⚠️ Breaking Changes
+
+| Change | Migration |
+|:---|:---|
+| Block search `beforeBlockCount`/`afterBlockCount` now default to `5` (was `0`) | Set explicitly to `0` if you need no context blocks |
+| `listStyle: 'todo'` renamed to `'task'` | Update hardcoded values to use `task` |
+| Collection `properties` field restructured | Workflows using raw JSON may need adjustment for new dynamic fields |
+
+### Added
+
+- **Craft Trigger Node** (`CraftDocumentsTrigger`) for polling-based automation
+  - Trigger on: Document Modified, New Document Created, Collection Item Added/Modified
+  - Configurable poll interval (1 minute to 24 hours)
+  - Document and collection filters
+  - Optional full content fetching on trigger
+- **Document Selector Dropdowns** for all block operations — no more manual ID entry
+- **Structured Block Insert Mode** with full type control:
+  - Text blocks: markdown, textStyle, listStyle, font, indentation, color
+  - Page/Card blocks: title, textStyle, cardLayout
+  - Code blocks: content, language
+  - Image blocks: URL, altText
+  - Divider blocks
+- **Regex Search Support** with `regexps` parameter (RE2-compatible patterns)
+- **Get Single Collection Item** operation — retrieve by ID without fetching entire collection
+- **Dynamic Collection Properties** — auto-loads schema, shows correct input types
+- **Native Date Pickers** with relative date support (`today`, `tomorrow`, `+3 days`)
+- **`fetchMetadata` Parameter** — include `lastModifiedAt` and `createdAt` in document list
+- **`allowNewSelectOptions`** — automatically add new select values to collection schema
+- **Simplify Output Toggle** — flatten nested response structures on all GET operations
+- **Resource Locator for Block IDs** — browse, search, or enter block IDs
+- **Block Update Properties**: font, indentationLevel, color, textAlignment, cardLayout
+- **Task Block Properties**: taskInfo.state, taskInfo.scheduleDate, taskInfo.deadlineDate
+- **Enhanced AI Tool Descriptions** — better `usableAsTool` support with structured parameters
+- **Shared Module Architecture** — 40% code reduction, consistent error handling
+- **PostReceive Hooks** — consistent response processing across all operations
+- **TypeScript Strict Mode** — strict null checks, explicit return types
+- **Comprehensive Error Messages** with troubleshooting guidance
+
+### Changed
+
+- `beforeBlockCount` default: `0` → `5` (users expect search results with context)
+- `afterBlockCount` default: `0` → `5`
+- `listStyle` value: `todo` → `task` (matches API spec)
+- Block ID inputs now use resource locator with multiple input modes
+- Date inputs now use native date picker
+- Collection properties use dynamic fields instead of raw JSON
+- Error messages now user-friendly with context and troubleshooting tips
+- Shared code consolidated to `shared/` directory
+
+### Fixed
+
+- `listStyle: 'todo'` not matching API specification
+- Empty search context by default (now returns 5 blocks before/after)
+- Collection property JSON parse errors not reported clearly
+- Date timezone interpretation issues
+- Empty responses returning `undefined` instead of `[]`
+- Inconsistent error handling across operations
+
+### Technical
+
+- New directory structure with `nodes/shared/` for reusable modules
+- `transport.ts` — API request factory
+- `blockDefinitions.ts` — Reusable block property definitions
+- `pagination.ts` — Pagination helpers
+- `parseHelpers.ts` — ID array parsing, JSON parsing
+- `types.ts` — Shared TypeScript interfaces
+
+### Statistics
+
+| Metric | v1.x | v2.0 | Change |
+|:---|:---:|:---:|:---:|
+| Operations | 23 | 28 | +5 |
+| Parameters | 67 | 94 | +27 |
+| Shared Code | 0% | 35% | +35% |
+| API Coverage | ~70% | 100% | +30% |
+
+---
+
 ## [1.0.17] - 2025-11-29
 
 ### Changed

@@ -21,16 +21,16 @@ export const collectionGetSchemaDescription: INodeProperties[] = [
 		displayOptions: { show: showOnlyForCollectionGetSchema },
 	},
 
-	// Schema Format
+	// Format
 	{
 		displayName: 'Schema Format',
-		name: 'schemaFormat',
+		name: 'format',
 		type: 'options',
 		options: [
 			{
-				name: 'JSON Schema (For Validation)',
+				name: 'JSON Schema (for Validation)',
 				value: 'json-schema-items',
-				description: 'Returns JSON Schema for validating collection items (use with add/update)',
+				description: 'Returns JSON Schema for validating collection items',
 			},
 			{
 				name: 'Schema Structure',

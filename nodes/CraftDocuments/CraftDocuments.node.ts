@@ -21,6 +21,7 @@ import { searchDescription } from './resources/search';
 // Load options methods
 import { getDocuments } from './loadOptions/getDocuments';
 import { getCollections } from './loadOptions/getCollections';
+import { getBlocks } from './loadOptions/getBlocks';
 
 export class CraftDocuments implements INodeType {
 	description: INodeTypeDescription = {
@@ -97,6 +98,7 @@ export class CraftDocuments implements INodeType {
 		loadOptions: {
 			getDocuments,
 			getCollections,
+			getBlocks,
 		},
 	};
 }

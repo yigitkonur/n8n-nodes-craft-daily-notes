@@ -11,13 +11,15 @@ const showOnlyForBlockGet = { operation: ['get'], resource: ['block'] };
 export const blockGetDescription: INodeProperties[] = [
 	// Document/Block ID - REQUIRED for multi-document API
 	{
-		displayName: 'Document or Block ID',
+		displayName: 'Document or Block Name or ID',
 		name: 'blockId',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getDocuments',
+		},
 		default: '',
 		required: true,
-		placeholder: 'doc-123 or block-uuid',
-		description: 'The ID of the document or block to fetch. Use "List Documents" to discover available document IDs.',
+		description: 'Select a document or enter a block ID. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 		displayOptions: { show: showOnlyForBlockGet },
 		routing: {
 			send: {

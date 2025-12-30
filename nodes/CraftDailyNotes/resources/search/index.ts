@@ -32,7 +32,25 @@ export const searchDescription: INodeProperties[] = [
 		default: 'searchAcrossNotes',
 	},
 
-	// Search Terms
+	// Search Type Selector
+	{
+		displayName: 'Search Type',
+		name: 'searchType',
+		type: 'options',
+		options: [
+			{ name: 'Plain Text', value: 'plain', description: 'Search using plain text terms' },
+			{ name: 'Regular Expression', value: 'regex', description: 'Search using RE2-compatible regex patterns' },
+		],
+		default: 'plain',
+		displayOptions: {
+			show: {
+				...showOnlyForSearch,
+				operation: ['searchAcrossNotes'],
+			},
+		},
+	},
+
+	// Search Terms (Plain Text)
 	{
 		displayName: 'Search Terms',
 		name: 'include',
@@ -45,12 +63,37 @@ export const searchDescription: INodeProperties[] = [
 			show: {
 				...showOnlyForSearch,
 				operation: ['searchAcrossNotes'],
+				searchType: ['plain'],
 			},
 		},
 		routing: {
 			send: {
 				type: 'query',
 				property: 'include',
+			},
+		},
+	},
+
+	// Regex Pattern
+	{
+		displayName: 'Regex Pattern',
+		name: 'regexps',
+		type: 'string',
+		default: '',
+		required: true,
+		placeholder: '\\d{4}-\\d{2}-\\d{2}|meeting|agenda',
+		description: 'RE2-compatible regex pattern to search for. Use | for OR, \\d for digits, etc.',
+		displayOptions: {
+			show: {
+				...showOnlyForSearch,
+				operation: ['searchAcrossNotes'],
+				searchType: ['regex'],
+			},
+		},
+		routing: {
+			send: {
+				type: 'query',
+				property: 'regexps',
 			},
 		},
 	},
@@ -112,5 +155,35 @@ export const searchDescription: INodeProperties[] = [
 				value: '={{ $value || undefined }}',
 			},
 		},
+	},
+
+	// Additional Options
+	{
+		displayName: 'Additional Options',
+		name: 'searchAdditionalOptions',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		displayOptions: {
+			show: {
+				...showOnlyForSearch,
+				operation: ['searchAcrossNotes'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Fetch Metadata',
+				name: 'fetchMetadata',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to include lastModifiedAt and createdAt in search results',
+				routing: {
+					send: {
+						type: 'query',
+						property: 'fetchMetadata',
+					},
+				},
+			},
+		],
 	},
 ];

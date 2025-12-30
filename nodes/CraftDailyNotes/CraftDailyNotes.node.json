@@ -6,7 +6,7 @@
 	"resources": {
 		"credentialDocumentation": [
 			{
-				"url": "https://github.com/yigitkonur/n8n-nodes-craft-daily-notes#setup"
+				"url": "https://www.craft.do/s/hLrMZpKFfYRWPT"
 			}
 		],
 		"primaryDocumentation": [
@@ -17,6 +17,6 @@
 	},
 	"alias": ["craft", "daily notes", "notion", "notes", "tasks", "productivity"],
 	"subcategories": {
-		"Productivity": ["Note Taking"]
+		"Productivity": ["Notes & Documents"]
 	}
 }

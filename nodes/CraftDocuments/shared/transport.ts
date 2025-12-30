@@ -1,5 +1,6 @@
 /**
  * Transport layer for loadOptions methods
+ * Provides centralized API request handling with proper error handling
  */
 import type {
 	ILoadOptionsFunctions,
@@ -11,6 +12,8 @@ import type {
 /**
  * Make API request to Craft Documents API
  * Used by loadOptions methods (e.g., getDocuments, getCollections)
+ *
+ * @throws Error with descriptive message on API failure
  */
 export async function craftApiRequest(
 	this: ILoadOptionsFunctions,
@@ -20,6 +23,11 @@ export async function craftApiRequest(
 ): Promise<IDataObject | IDataObject[]> {
 	const credentials = await this.getCredentials('craftDocumentsApi');
 	const apiUrl = credentials.apiUrl as string;
+
+	if (!apiUrl) {
+		throw new Error('API URL is not configured in credentials');
+	}
+
 	const baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
 
 	const options: IHttpRequestOptions = {
@@ -33,5 +41,25 @@ export async function craftApiRequest(
 		},
 	};
 
-	return this.helpers.httpRequest(options);
+	try {
+		return await this.helpers.httpRequest(options);
+	} catch (error: unknown) {
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		const httpError = error as { response?: { status?: number; body?: unknown } };
+		const statusCode = httpError?.response?.status;
+		const responseBody = httpError?.response?.body;
+
+		let detailedMessage = `Craft API request failed: ${errorMessage}`;
+		if (statusCode) {
+			detailedMessage += ` (HTTP ${statusCode})`;
+		}
+		if (responseBody && typeof responseBody === 'object') {
+			const body = responseBody as { error?: string; message?: string };
+			if (body.error || body.message) {
+				detailedMessage += ` - ${body.error || body.message}`;
+			}
+		}
+
+		throw new Error(detailedMessage);
+	}
 }

@@ -17,30 +17,22 @@ import type {
 const showOnlyForBlockInsert = { operation: ['insert'], resource: ['block'] };
 
 /**
- * Build position object from simple node parameters
+ * Build position object from node parameters
  * Uses pageId instead of date for multi-document API
  */
 function buildPositionObject(context: IExecuteSingleFunctions): IDataObject {
-	let positionType = 'end';
-	let targetPageId = '';
-	let referenceBlockId = '';
-
-	try {
-		positionType = context.getNodeParameter('positionType', 'end') as string;
-		targetPageId = context.getNodeParameter('targetPageId', '') as string;
-		referenceBlockId = context.getNodeParameter('referenceBlockId', '') as string;
-	} catch {
-		// Use defaults if parameters can't be read
-	}
+	const positionType = (context.getNodeParameter('positionType', 'end') as string) || 'end';
+	const targetPageId = (context.getNodeParameter('targetPageId', '') as string) || '';
+	const referenceBlockId = (context.getNodeParameter('referenceBlockId', '') as string) || '';
 
 	const position: IDataObject = {
-		position: positionType || 'end',
+		position: positionType,
 		pageId: targetPageId,
 	};
 
-	// Add referenceBlockId if using before/after
+	// Add siblingId only for before/after positioning (API uses siblingId, not referenceBlockId)
 	if (['before', 'after'].includes(positionType) && referenceBlockId) {
-		position.referenceBlockId = referenceBlockId;
+		position.siblingId = referenceBlockId;
 	}
 
 	return position;
@@ -48,33 +40,23 @@ function buildPositionObject(context: IExecuteSingleFunctions): IDataObject {
 
 /**
  * PreSend hook for block insert operation
- * 
- * CLEAN IMPLEMENTATION: Send markdown as single text block
- * Craft API parses it into proper blocks server-side
+ *
+ * Builds the request body for inserting markdown content.
+ * Craft API parses markdown into proper blocks server-side.
+ * Uses pageId instead of date for multi-document API.
  */
 export async function blockInsertPreSend(
 	this: IExecuteSingleFunctions,
 	requestOptions: IHttpRequestOptions,
 ): Promise<IHttpRequestOptions> {
-	// Get position parameters
 	const position = buildPositionObject(this);
 
-	// Get markdown content - ensure it's a string
-	let markdownContent = '';
-	try {
-		const rawValue = this.getNodeParameter('markdownContent', '');
-		if (typeof rawValue === 'string') {
-			markdownContent = rawValue;
-		} else if (rawValue) {
-			markdownContent = String(rawValue);
-		}
-	} catch {
-		markdownContent = '';
-	}
+	// Get markdown content with proper type coercion
+	const rawValue = this.getNodeParameter('markdownContent', '') as string | unknown;
+	const markdownContent = typeof rawValue === 'string' ? rawValue : String(rawValue ?? '');
 
-	// Build the request body - EXACTLY as the API expects
-	// KEY DIFFERENCE: Uses pageId instead of date
-	const requestBody = {
+	// Build request body - n8n handles JSON serialization automatically
+	const requestBody: IDataObject = {
 		blocks: [
 			{
 				type: 'text',
@@ -87,34 +69,27 @@ export async function blockInsertPreSend(
 		},
 	};
 
-	// Add referenceBlockId only if needed
-	if (position.referenceBlockId) {
-		(requestBody.position as IDataObject).referenceBlockId = String(position.referenceBlockId);
+	// Add siblingId only for before/after positioning
+	if (position.siblingId) {
+		(requestBody.position as IDataObject).siblingId = String(position.siblingId);
 	}
 
-	// COMPLETELY REPLACE the body - don't merge with existing
-	// Use JSON.stringify to send as raw JSON string
-	requestOptions.body = JSON.stringify(requestBody);
-	
-	// Set headers for JSON
-	requestOptions.headers = {
-		'Content-Type': 'application/json',
-		'Accept': 'application/json',
-	};
-
+	requestOptions.body = requestBody;
 	return requestOptions;
 }
 
 export const blockInsertDescription: INodeProperties[] = [
 	// Target Document/Page ID - REQUIRED
 	{
-		displayName: 'Target Document/Page ID',
+		displayName: 'Target Document Name or ID',
 		name: 'targetPageId',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getDocuments',
+		},
 		default: '',
 		required: true,
-		placeholder: 'doc-123',
-		description: 'The ID of the document or page to insert into. Use "List Documents" to find available IDs.',
+		description: 'Select a document to insert into. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 		displayOptions: { show: showOnlyForBlockInsert },
 	},
 

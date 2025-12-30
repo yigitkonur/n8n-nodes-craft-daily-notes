@@ -33,7 +33,7 @@ export const blockSearchDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		placeholder: 'meeting|agenda',
-		description: 'The search pattern. Supports NodeJS regular expressions.',
+		description: 'The search pattern. Supports RE2-compatible regex syntax.',
 		displayOptions: { show: showOnlyForBlockSearch },
 		routing: {
 			send: {
@@ -73,7 +73,7 @@ export const blockSearchDescription: INodeProperties[] = [
 					minValue: 0,
 					maxValue: 5,
 				},
-				default: 0,
+				default: 5,
 				description: 'Number of blocks to include before each match for context',
 				routing: {
 					send: {
@@ -90,7 +90,7 @@ export const blockSearchDescription: INodeProperties[] = [
 					minValue: 0,
 					maxValue: 5,
 				},
-				default: 0,
+				default: 5,
 				description: 'Number of blocks to include after each match for context',
 				routing: {
 					send: {

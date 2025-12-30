@@ -36,8 +36,9 @@ export const collectionDeleteItemsDescription: INodeProperties[] = [
 			send: {
 				type: 'body',
 				property: 'idsToDelete',
+				// Safely parse as JSON array or split by comma
 				value:
-					'={{ $value.startsWith("[") ? JSON.parse($value) : $value.split(",").map(id => id.trim()) }}',
+					'={{ $value && $value.trim().startsWith("[") ? (() => { try { return JSON.parse($value); } catch { return $value.split(",").map(id => id.trim()).filter(id => id); } })() : ($value ? $value.split(",").map(id => id.trim()).filter(id => id) : []) }}',
 			},
 		},
 	},

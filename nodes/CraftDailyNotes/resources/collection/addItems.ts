@@ -59,8 +59,25 @@ export const collectionAddItemsDescription: INodeProperties[] = [
 			send: {
 				type: 'body',
 				property: 'items',
+				// Safely parse JSON properties with fallback to empty object
 				value:
-					'={{ $value.itemValues ? $value.itemValues.map(item => ({ title: item.title, properties: typeof item.properties === "string" ? JSON.parse(item.properties || "{}") : (item.properties || {}) })) : [] }}',
+					'={{ $value.itemValues ? $value.itemValues.map(item => ({ title: item.title, properties: typeof item.properties === "string" ? (() => { try { return JSON.parse(item.properties || "{}"); } catch { return {}; } })() : (item.properties || {}) })) : [] }}',
+			},
+		},
+	},
+
+	// Allow New Select Options
+	{
+		displayName: 'Allow New Select Options',
+		name: 'allowNewSelectOptions',
+		type: 'boolean',
+		default: false,
+		description: 'Whether to allow creating new options for select properties if the value doesn\'t exist in the schema. Use with caution.',
+		displayOptions: { show: showOnlyForCollectionAddItems },
+		routing: {
+			send: {
+				type: 'body',
+				property: 'allowNewSelectOptions',
 			},
 		},
 	},

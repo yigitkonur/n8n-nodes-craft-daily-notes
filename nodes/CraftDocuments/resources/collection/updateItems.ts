@@ -67,8 +67,25 @@ export const collectionUpdateItemsDescription: INodeProperties[] = [
 			send: {
 				type: 'body',
 				property: 'itemsToUpdate',
+				// Safely parse JSON properties with fallback to empty object
 				value:
-					'={{ $value.itemValues ? $value.itemValues.map(item => { const obj = { id: item.id }; if (item.title) obj.title = item.title; obj.properties = typeof item.properties === "string" ? JSON.parse(item.properties || "{}") : (item.properties || {}); return obj; }) : [] }}',
+					'={{ $value.itemValues ? $value.itemValues.map(item => { const obj = { id: item.id }; if (item.title) obj.title = item.title; obj.properties = typeof item.properties === "string" ? (() => { try { return JSON.parse(item.properties || "{}"); } catch { return {}; } })() : (item.properties || {}); return obj; }) : [] }}',
+			},
+		},
+	},
+
+	// Allow New Select Options
+	{
+		displayName: 'Allow New Select Options',
+		name: 'allowNewSelectOptions',
+		type: 'boolean',
+		default: false,
+		description: 'Whether to allow creating new options for select properties if the value doesn\'t exist in the schema. Use with caution.',
+		displayOptions: { show: showOnlyForCollectionUpdateItems },
+		routing: {
+			send: {
+				type: 'body',
+				property: 'allowNewSelectOptions',
 			},
 		},
 	},

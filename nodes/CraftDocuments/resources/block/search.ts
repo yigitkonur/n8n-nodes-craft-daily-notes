@@ -11,13 +11,15 @@ const showOnlyForBlockSearch = { operation: ['searchInDocument'], resource: ['bl
 export const blockSearchDescription: INodeProperties[] = [
 	// Document ID - KEY DIFFERENCE from Daily Notes
 	{
-		displayName: 'Document ID',
+		displayName: 'Document Name or ID',
 		name: 'documentId',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getDocuments',
+		},
 		default: '',
 		required: true,
-		placeholder: 'doc-123',
-		description: 'The document ID to search within. Use "List Documents" to find available IDs.',
+		description: 'Select a document to search within. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 		displayOptions: { show: showOnlyForBlockSearch },
 		routing: {
 			send: {
@@ -35,7 +37,7 @@ export const blockSearchDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		placeholder: 'meeting|agenda',
-		description: 'The search pattern. Supports NodeJS regular expressions.',
+		description: 'The search pattern. Supports RE2-compatible regex syntax.',
 		displayOptions: { show: showOnlyForBlockSearch },
 		routing: {
 			send: {
@@ -75,7 +77,7 @@ export const blockSearchDescription: INodeProperties[] = [
 					minValue: 0,
 					maxValue: 5,
 				},
-				default: 0,
+				default: 5,
 				description: 'Number of blocks to include before each match for context',
 				routing: {
 					send: {
@@ -92,7 +94,7 @@ export const blockSearchDescription: INodeProperties[] = [
 					minValue: 0,
 					maxValue: 5,
 				},
-				default: 0,
+				default: 5,
 				description: 'Number of blocks to include after each match for context',
 				routing: {
 					send: {

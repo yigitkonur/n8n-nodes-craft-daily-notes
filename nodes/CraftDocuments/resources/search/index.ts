@@ -35,7 +35,25 @@ export const searchDescription: INodeProperties[] = [
 		default: 'searchAcrossDocuments',
 	},
 
-	// Search Terms
+	// Search Type Selector
+	{
+		displayName: 'Search Type',
+		name: 'searchType',
+		type: 'options',
+		options: [
+			{ name: 'Plain Text', value: 'plain', description: 'Search using plain text terms' },
+			{ name: 'Regular Expression', value: 'regex', description: 'Search using RE2-compatible regex patterns' },
+		],
+		default: 'plain',
+		displayOptions: {
+			show: {
+				...showOnlyForSearch,
+				operation: ['searchAcrossDocuments'],
+			},
+		},
+	},
+
+	// Search Terms (Plain Text)
 	{
 		displayName: 'Search Terms',
 		name: 'include',
@@ -48,12 +66,37 @@ export const searchDescription: INodeProperties[] = [
 			show: {
 				...showOnlyForSearch,
 				operation: ['searchAcrossDocuments'],
+				searchType: ['plain'],
 			},
 		},
 		routing: {
 			send: {
 				type: 'query',
 				property: 'include',
+			},
+		},
+	},
+
+	// Regex Pattern
+	{
+		displayName: 'Regex Pattern',
+		name: 'regexps',
+		type: 'string',
+		default: '',
+		required: true,
+		placeholder: '\\d{4}-\\d{2}-\\d{2}|meeting|agenda',
+		description: 'RE2-compatible regex pattern to search for. Use | for OR, \\d for digits, etc.',
+		displayOptions: {
+			show: {
+				...showOnlyForSearch,
+				operation: ['searchAcrossDocuments'],
+				searchType: ['regex'],
+			},
+		},
+		routing: {
+			send: {
+				type: 'query',
+				property: 'regexps',
 			},
 		},
 	},
@@ -90,7 +133,8 @@ export const searchDescription: INodeProperties[] = [
 			send: {
 				type: 'query',
 				property: 'documentIds',
-				value: '={{ $value ? ($value.startsWith("[") ? JSON.parse($value) : $value.split(",").map(id => id.trim())) : undefined }}',
+				// Safely parse as JSON array or split by comma
+				value: '={{ $value ? ($value.trim().startsWith("[") ? (() => { try { return JSON.parse($value); } catch { return $value.split(",").map(id => id.trim()).filter(id => id); } })() : $value.split(",").map(id => id.trim()).filter(id => id)) : undefined }}',
 			},
 		},
 	},
@@ -118,5 +162,35 @@ export const searchDescription: INodeProperties[] = [
 				value: '={{ $value || undefined }}',
 			},
 		},
+	},
+
+	// Additional Options
+	{
+		displayName: 'Additional Options',
+		name: 'searchAdditionalOptions',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		displayOptions: {
+			show: {
+				...showOnlyForSearch,
+				operation: ['searchAcrossDocuments'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Fetch Metadata',
+				name: 'fetchMetadata',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to include lastModifiedAt and createdAt in search results',
+				routing: {
+					send: {
+						type: 'query',
+						property: 'fetchMetadata',
+					},
+				},
+			},
+		],
 	},
 ];

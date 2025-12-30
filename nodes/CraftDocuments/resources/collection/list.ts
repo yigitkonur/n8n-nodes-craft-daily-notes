@@ -35,7 +35,8 @@ export const collectionListDescription: INodeProperties[] = [
 			send: {
 				type: 'query',
 				property: 'documentIds',
-				value: '={{ $value ? ($value.startsWith("[") ? JSON.parse($value) : $value.split(",").map(id => id.trim())) : undefined }}',
+				// Safely parse as JSON array or split by comma
+				value: '={{ $value ? ($value.trim().startsWith("[") ? (() => { try { return JSON.parse($value); } catch { return $value.split(",").map(id => id.trim()).filter(id => id); } })() : $value.split(",").map(id => id.trim()).filter(id => id)) : undefined }}',
 			},
 		},
 	},

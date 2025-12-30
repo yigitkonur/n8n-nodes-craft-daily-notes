@@ -10,6 +10,7 @@ Thumbs.db
 
 # IDE/Editor configs
 .idea/
+.vscode/
 *.swp
 *.swo
 
@@ -26,20 +27,40 @@ CLAUDE.md
 .roomodes
 .rules
 
-# Development template files (not needed in published package)
+# Development documentation (not needed in published package)
 README_TEMPLATE.md
 craft-api-docs.md
 API_VALUE_REFERENCE.md
 text-test.md
 docs/
+how-to-create-community-nodes/
+craft-api-changes/
+
+# Markdown files (except README, CHANGELOG, LICENSE)
+*.md
+!README.md
+!CHANGELOG.md
+!LICENSE.md
 
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Environment
 .env
 .env.local
+.env.*.local
 
 # TypeScript incremental compilation
 *.tsbuildinfo
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

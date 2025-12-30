@@ -3,6 +3,7 @@
  * Used by collection selector dropdowns
  */
 import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
+
 import { craftApiRequest } from '../shared/transport';
 
 interface CollectionItem {
@@ -22,25 +23,32 @@ interface CollectionsResponse {
 /**
  * Fetch all collections from the Craft Documents API
  * Returns options for collection selector dropdowns
+ *
+ * @returns Array of collection options, or empty array on error
  */
 export async function getCollections(
 	this: ILoadOptionsFunctions,
 ): Promise<INodePropertyOptions[]> {
-	const response = (await craftApiRequest.call(
-		this,
-		'GET',
-		'/collections',
-	)) as unknown as CollectionsResponse;
+	try {
+		const response = (await craftApiRequest.call(
+			this,
+			'GET',
+			'/collections',
+		)) as unknown as CollectionsResponse;
 
-	if (!response?.items || !Array.isArray(response.items)) {
+		if (!response?.items || !Array.isArray(response.items)) {
+			return [];
+		}
+
+		return response.items.map((collection) => ({
+			name: collection.name || `Collection ${collection.key}`,
+			value: collection.key,
+			description: collection.documentId
+				? `In document: ${collection.documentId}`
+				: `ID: ${collection.key}`,
+		}));
+	} catch {
+		// Return empty array on error - n8n will show "No options available"
 		return [];
 	}
-
-	return response.items.map((collection) => ({
-		name: collection.name || `Collection ${collection.key}`,
-		value: collection.key,
-		description: collection.documentId
-			? `In document: ${collection.documentId}`
-			: `ID: ${collection.key}`,
-	}));
 }

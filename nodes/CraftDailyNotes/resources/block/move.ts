@@ -21,8 +21,9 @@ export const blockMoveDescription: INodeProperties[] = [
 			send: {
 				type: 'body',
 				property: 'blockIds',
+				// Safely parse as JSON array or split by comma
 				value:
-					'={{ $value.startsWith("[") ? JSON.parse($value) : $value.split(",").map(id => id.trim()) }}',
+					'={{ $value && $value.trim().startsWith("[") ? (() => { try { return JSON.parse($value); } catch { return $value.split(",").map(id => id.trim()).filter(id => id); } })() : ($value ? $value.split(",").map(id => id.trim()).filter(id => id) : []) }}',
 			},
 		},
 	},
@@ -81,7 +82,7 @@ export const blockMoveDescription: INodeProperties[] = [
 				type: 'body',
 				property: 'position',
 				value:
-					'={{ $value.positionValues ? { position: $value.positionValues.position, date: $value.positionValues.date, ...(["before", "after"].includes($value.positionValues.position) && $value.positionValues.referenceBlockId ? { referenceBlockId: $value.positionValues.referenceBlockId } : {}) } : { position: "end", date: "today" } }}',
+					'={{ $value.positionValues ? { position: $value.positionValues.position, date: $value.positionValues.date, ...(["before", "after"].includes($value.positionValues.position) && $value.positionValues.referenceBlockId ? { siblingId: $value.positionValues.referenceBlockId } : {}) } : { position: "end", date: "today" } }}',
 			},
 		},
 	},

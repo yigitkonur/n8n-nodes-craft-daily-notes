@@ -45,14 +45,14 @@ export const taskAddDescription: INodeProperties[] = [
 						type: 'options',
 						options: [
 							{
-								name: 'Inbox',
-								value: 'inbox',
-								description: 'Add task to inbox',
-							},
-							{
 								name: 'Daily Note',
 								value: 'dailyNote',
 								description: 'Add task to a specific daily note',
+							},
+							{
+								name: 'Inbox',
+								value: 'inbox',
+								description: 'Add task to inbox',
 							},
 						],
 						default: 'inbox',
@@ -75,7 +75,7 @@ export const taskAddDescription: INodeProperties[] = [
 						placeholder: 'Buy groceries',
 						description: 'The task content in markdown format',
 					},
-			],
+				],
 			},
 		],
 		routing: {

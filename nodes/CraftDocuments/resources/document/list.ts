@@ -7,15 +7,28 @@ import type { INodeProperties } from 'n8n-workflow';
 const showOnlyForDocumentList = { operation: ['list'], resource: ['document'] };
 
 export const documentListDescription: INodeProperties[] = [
-	// No additional parameters needed for listing documents
-	// The endpoint returns all accessible documents
+	// Options collection for document list parameters
 	{
-		displayName: 'Info',
-		name: 'listInfo',
-		type: 'notice',
-		default: '',
+		displayName: 'Options',
+		name: 'options',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
 		displayOptions: { show: showOnlyForDocumentList },
-		description:
-			'Returns all documents accessible through this connection with their IDs, titles, and deletion status',
+		options: [
+			{
+				displayName: 'Fetch Metadata',
+				name: 'fetchMetadata',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to include metadata (lastModifiedAt, createdAt, clickableLink) in the response',
+				routing: {
+					send: {
+						type: 'query',
+						property: 'fetchMetadata',
+					},
+				},
+			},
+		],
 	},
 ];

@@ -15,29 +15,21 @@ import type {
 const showOnlyForBlockInsert = { operation: ['insert'], resource: ['block'] };
 
 /**
- * Build position object from simple node parameters
+ * Build position object from node parameters
  */
 function buildPositionObject(context: IExecuteSingleFunctions): IDataObject {
-	let positionType = 'end';
-	let targetDate = 'today';
-	let referenceBlockId = '';
-
-	try {
-		positionType = context.getNodeParameter('positionType', 'end') as string;
-		targetDate = context.getNodeParameter('targetDate', 'today') as string;
-		referenceBlockId = context.getNodeParameter('referenceBlockId', '') as string;
-	} catch {
-		// Use defaults if parameters can't be read
-	}
+	const positionType = (context.getNodeParameter('positionType', 'end') as string) || 'end';
+	const targetDate = (context.getNodeParameter('targetDate', 'today') as string) || 'today';
+	const referenceBlockId = (context.getNodeParameter('referenceBlockId', '') as string) || '';
 
 	const position: IDataObject = {
-		position: positionType || 'end',
-		date: targetDate || 'today',
+		position: positionType,
+		date: targetDate,
 	};
 
-	// Add referenceBlockId if using before/after
+	// Add siblingId only for before/after positioning (API uses siblingId, not referenceBlockId)
 	if (['before', 'after'].includes(positionType) && referenceBlockId) {
-		position.referenceBlockId = referenceBlockId;
+		position.siblingId = referenceBlockId;
 	}
 
 	return position;
@@ -45,32 +37,22 @@ function buildPositionObject(context: IExecuteSingleFunctions): IDataObject {
 
 /**
  * PreSend hook for block insert operation
- * 
- * CLEAN IMPLEMENTATION: Send markdown as single text block
- * Craft API parses it into proper blocks server-side
+ *
+ * Builds the request body for inserting markdown content.
+ * Craft API parses markdown into proper blocks server-side.
  */
 export async function blockInsertPreSend(
 	this: IExecuteSingleFunctions,
 	requestOptions: IHttpRequestOptions,
 ): Promise<IHttpRequestOptions> {
-	// Get position parameters
 	const position = buildPositionObject(this);
 
-	// Get markdown content - ensure it's a string
-	let markdownContent = '';
-	try {
-		const rawValue = this.getNodeParameter('markdownContent', '');
-		if (typeof rawValue === 'string') {
-			markdownContent = rawValue;
-		} else if (rawValue) {
-			markdownContent = String(rawValue);
-		}
-	} catch {
-		markdownContent = '';
-	}
+	// Get markdown content with proper type coercion
+	const rawValue = this.getNodeParameter('markdownContent', '') as string | unknown;
+	const markdownContent = typeof rawValue === 'string' ? rawValue : String(rawValue ?? '');
 
-	// Build the request body - EXACTLY as the API expects
-	const requestBody = {
+	// Build request body - n8n handles JSON serialization automatically
+	const requestBody: IDataObject = {
 		blocks: [
 			{
 				type: 'text',
@@ -83,21 +65,12 @@ export async function blockInsertPreSend(
 		},
 	};
 
-	// Add referenceBlockId only if needed
-	if (position.referenceBlockId) {
-		(requestBody.position as IDataObject).referenceBlockId = String(position.referenceBlockId);
+	// Add siblingId only for before/after positioning
+	if (position.siblingId) {
+		(requestBody.position as IDataObject).siblingId = String(position.siblingId);
 	}
 
-	// COMPLETELY REPLACE the body - don't merge with existing
-	// Use JSON.stringify to send as raw JSON string
-	requestOptions.body = JSON.stringify(requestBody);
-	
-	// Set headers for JSON
-	requestOptions.headers = {
-		'Content-Type': 'application/json',
-		'Accept': 'application/json',
-	};
-
+	requestOptions.body = requestBody;
 	return requestOptions;
 }
 

@@ -1,33 +1,51 @@
 /**
- * LOAD OPTIONS METHOD: Get Collections
- * Powers the dynamic dropdown for collection selection
+ * Load options method for fetching collections
+ * Used by collection selector dropdowns
  */
 import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 
 import { craftApiRequest } from '../shared/transport';
 
-interface CraftCollection {
+interface CollectionItem {
 	id: string;
 	name: string;
-	itemCount: number;
-	dailyNoteDate: string;
+	itemCount?: number;
+	dailyNoteDate?: string;
 }
 
-interface CraftCollectionsResponse {
-	items: CraftCollection[];
+interface CollectionsResponse {
+	items: CollectionItem[];
 }
 
+/**
+ * Fetch all collections from the Craft Daily Notes API
+ * Returns options for collection selector dropdowns
+ *
+ * @returns Array of collection options, or empty array on error
+ */
 export async function getCollections(
 	this: ILoadOptionsFunctions,
 ): Promise<INodePropertyOptions[]> {
-	const response = await craftApiRequest.call(this, 'GET', '/collections');
+	try {
+		const response = (await craftApiRequest.call(
+			this,
+			'GET',
+			'/collections',
+		)) as unknown as CollectionsResponse;
 
-	const data = response as unknown as CraftCollectionsResponse;
-	const collections = data.items || [];
+		if (!response?.items || !Array.isArray(response.items)) {
+			return [];
+		}
 
-	// Map to n8n options format
-	return collections.map((collection) => ({
-		name: `${collection.name} (${collection.dailyNoteDate})`,
-		value: collection.id,
-	}));
+		return response.items.map((collection) => ({
+			name: collection.name || `Collection ${collection.id}`,
+			value: collection.id,
+			description: collection.dailyNoteDate
+				? `Date: ${collection.dailyNoteDate}`
+				: `ID: ${collection.id}`,
+		}));
+	} catch {
+		// Return empty array on error - n8n will show "No options available"
+		return [];
+	}
 }

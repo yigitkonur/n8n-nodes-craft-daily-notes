@@ -23,8 +23,9 @@ export const blockMoveDescription: INodeProperties[] = [
 			send: {
 				type: 'body',
 				property: 'blockIds',
+				// Safely parse as JSON array or split by comma
 				value:
-					'={{ $value.startsWith("[") ? JSON.parse($value) : $value.split(",").map(id => id.trim()) }}',
+					'={{ $value && $value.trim().startsWith("[") ? (() => { try { return JSON.parse($value); } catch { return $value.split(",").map(id => id.trim()).filter(id => id); } })() : ($value ? $value.split(",").map(id => id.trim()).filter(id => id) : []) }}',
 			},
 		},
 	},
@@ -55,13 +56,15 @@ export const blockMoveDescription: INodeProperties[] = [
 						default: 'end',
 					},
 					{
-						displayName: 'Target Document/Page ID',
+						displayName: 'Target Document Name or ID',
 						name: 'pageId',
-						type: 'string',
+						type: 'options',
+						typeOptions: {
+							loadOptionsMethod: 'getDocuments',
+						},
 						default: '',
 						required: true,
-						placeholder: 'doc-123',
-						description: 'Which document/page to move the blocks to',
+						description: 'Select a document to move the blocks to. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 					},
 					{
 						displayName: 'Reference Block ID',
@@ -85,7 +88,7 @@ export const blockMoveDescription: INodeProperties[] = [
 				property: 'position',
 				// KEY DIFFERENCE: Uses pageId instead of date
 				value:
-					'={{ $value.positionValues ? { position: $value.positionValues.position, pageId: $value.positionValues.pageId, ...(["before", "after"].includes($value.positionValues.position) && $value.positionValues.referenceBlockId ? { referenceBlockId: $value.positionValues.referenceBlockId } : {}) } : { position: "end", pageId: "" } }}',
+					'={{ $value.positionValues ? { position: $value.positionValues.position, pageId: $value.positionValues.pageId, ...(["before", "after"].includes($value.positionValues.position) && $value.positionValues.referenceBlockId ? { siblingId: $value.positionValues.referenceBlockId } : {}) } : { position: "end", pageId: "" } }}',
 			},
 		},
 	},
