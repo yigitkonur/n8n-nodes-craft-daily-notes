@@ -68,4 +68,4 @@ jobs:
         if: steps.check.outputs.exists == 'false' || steps.bump.outputs.bumped == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+        run: npm publish --access public --ignore-scripts
