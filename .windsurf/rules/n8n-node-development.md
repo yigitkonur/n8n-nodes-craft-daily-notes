@@ -186,9 +186,9 @@ async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 ## Commands
 
 ```bash
-npm run dev      # Development with hot reload
-npm run build    # Compile TypeScript
-npm run lint:fix # Auto-fix lint issues
+pnpm dev      # Development with hot reload
+pnpm build    # Compile TypeScript
+pnpm lint:fix # Auto-fix lint issues
 ```
 
 ---

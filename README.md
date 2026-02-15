@@ -189,7 +189,7 @@ Craft is beautiful for writing. But getting data in and out? Pain. This package 
 
 ```bash
 cd ~/.n8n/nodes
-npm install n8n-nodes-craft-daily-notes
+pnpm add n8n-nodes-craft-daily-notes
 ```
 
 ---
@@ -300,16 +300,15 @@ Terms: "project alpha"
 
 ```bash
 # Install dependencies
-npm install
-
+pnpm install
 # Development mode (hot reload)
-npm run dev
+pnpm dev
 
 # Build for production
-npm run build
+pnpm build
 
 # Lint code
-npm run lint
+pnpm lint
 ```
 
 ### Project Structure
